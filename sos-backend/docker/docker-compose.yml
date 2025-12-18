@@ -1,0 +1,153 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: sos-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - sos-net
+
+  redis:
+    image: redis:7
+    container_name: sos-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - sos-net
+
+  api-gateway:
+    build:
+      context: ..
+      dockerfile: docker/api-gateway.Dockerfile
+    container_name: api-gateway
+    env_file:
+      - ../api-gateway/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - auth-service
+      - user-service
+      - mechanic-service
+      - sos-service
+      - tracking-service
+      - notification-service
+      - admin-service
+    networks:
+      - sos-net
+
+  auth-service:
+    build:
+      context: ..
+      dockerfile: docker/auth.Dockerfile
+    container_name: auth-service
+    env_file:
+      - ../auth-service/.env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - sos-net
+    ports:
+      - "8001:8001"
+
+  user-service:
+    build:
+      context: ..
+      dockerfile: docker/user.Dockerfile
+    container_name: user-service
+    env_file:
+      - ../user-service/.env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - sos-net
+    ports:
+      - "8002:8002"
+
+  mechanic-service:
+    build:
+      context: ..
+      dockerfile: docker/mechanic.Dockerfile
+    container_name: mechanic-service
+    env_file:
+      - ../mechanic-service/.env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - sos-net
+    ports:
+      - "8003:8003"
+
+  sos-service:
+    build:
+      context: ..
+      dockerfile: docker/sos.Dockerfile
+    container_name: sos-service
+    env_file:
+      - ../sos-service/.env
+    depends_on:
+      - mongo
+      - redis
+      - mechanic-service
+    networks:
+      - sos-net
+    ports:
+      - "8004:8004"
+
+  tracking-service:
+    build:
+      context: ..
+      dockerfile: docker/tracking.Dockerfile
+    container_name: tracking-service
+    env_file:
+      - ../tracking-service/.env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - sos-net
+    ports:
+      - "8005:8005"
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: docker/notification.Dockerfile
+    container_name: notification-service
+    env_file:
+      - ../notification-service/.env
+    depends_on:
+      - redis
+    networks:
+      - sos-net
+    ports:
+      - "9007:9007"
+
+  admin-service:
+    build:
+      context: ..
+      dockerfile: docker/admin.Dockerfile
+    container_name: admin-service
+    env_file:
+      - ../admin-service/.env
+    depends_on:
+      - mongo
+      - redis
+    networks:
+      - sos-net
+    ports:
+      - "8006:8006"
+
+networks:
+  sos-net:
+
+volumes:
+  mongo_data:

@@ -1,0 +1,70 @@
+version: "3.9"
+
+services:
+  # ---------------- API GATEWAY ----------------
+  api-gateway:
+    build: ./sos-backend/api-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./sos-backend/api-gateway/.env
+    depends_on:
+      - auth-service
+      - user-service
+      - mechanic-service
+      - sos-service
+      - tracking-service
+      - notification-service
+      - admin-service
+
+  # ---------------- AUTH ----------------
+  auth-service:
+    build: ./sos-backend/auth-service
+    env_file:
+      - ./sos-backend/auth-service/.env
+
+  # ---------------- USER ----------------
+  user-service:
+    build: ./sos-backend/user-service
+    env_file:
+      - ./sos-backend/user-service/.env
+
+  # ---------------- MECHANIC ----------------
+  mechanic-service:
+    build: ./sos-backend/mechanic-service
+    env_file:
+      - ./sos-backend/mechanic-service/.env
+
+  # ---------------- SOS ----------------
+  sos-service:
+    build: ./sos-backend/sos-service
+    env_file:
+      - ./sos-backend/sos-service/.env
+
+  # ---------------- TRACKING ----------------
+  tracking-service:
+    build: ./sos-backend/tracking-service
+    env_file:
+      - ./sos-backend/tracking-service/.env
+
+  # ---------------- NOTIFICATION (SOCKET) ----------------
+  notification-service:
+    build: ./sos-backend/notification-service
+    ports:
+      - "9007:9007"
+    env_file:
+      - ./sos-backend/notification-service/.env
+
+  # ---------------- ADMIN ----------------
+  admin-service:
+    build: ./sos-backend/admin-service
+    env_file:
+      - ./sos-backend/admin-service/.env
+
+  # ---------------- FRONTEND ----------------
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api-gateway
