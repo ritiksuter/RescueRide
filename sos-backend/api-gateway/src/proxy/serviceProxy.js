@@ -1,7 +1,11 @@
 import httpProxy from "http-proxy";
 import { config } from "../config/env.js";
 
-const proxy = httpProxy.createProxyServer();
+const proxy = httpProxy.createProxyServer({changeOrigin: true});
+proxy.on("error", (err, req, res) => {
+  console.error("Proxy error:", err.message);
+  res.status(500).json({ message: "Internal Proxy Error" });
+});
 
 export const forwardToService = (service) => {
   return (req, res) => {

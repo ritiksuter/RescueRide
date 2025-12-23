@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { config } from "../../config/env.js";
 
 export const verifyToken = (req, res, next) => {
   try {
@@ -12,7 +13,7 @@ export const verifyToken = (req, res, next) => {
       return res.status(401).json({ message: "Invalid token format" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.JWT_SECRET);
     req.user = decoded;
 
     next();

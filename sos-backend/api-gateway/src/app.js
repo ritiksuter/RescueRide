@@ -16,7 +16,6 @@ import adminRoutes from "./routes/admin.route.js";
 const app = express();
 
 
-app.use(express.json());
 app.use(cors());
 app.use(morgan("dev"));
 app.use(rateLimiter);
@@ -29,6 +28,7 @@ app.use("/sos", sosRoutes);
 app.use("/tracking", trackingRoutes);
 app.use("/admin", adminRoutes);
 
+app.use(express.json());
 
 app.get("/health", (req, res) => {
   res.status(200).json({

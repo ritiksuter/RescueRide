@@ -58,7 +58,7 @@ export const updateMyStatusController = async (req, res) => {
 export const updateMyLocationController = async (req, res) => {
   try {
     const authUserId = req.user.id;
-    const { lat, lng } = req.body;
+    const { lat, lng } = req.body.location;
 
     if (lat == null || lng == null) {
       return failure(res, "lat and lng are required", 400);
