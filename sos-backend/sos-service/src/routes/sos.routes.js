@@ -50,9 +50,9 @@ router.post(
   "/:id/complete",
   verifyToken,
   roleGuard(ROLES.MECHANIC, ROLES.ADMIN),
-  completeSosJobController
+  completeSosJobController,
 );
-router.post(
+router.patch(
   "/:id/job-cancel",
   verifyToken,
   roleGuard(ROLES.MECHANIC, ROLES.ADMIN),

@@ -2,14 +2,12 @@ import Redis from "ioredis";
 import { config } from "../config/env.js";
 import { createProfileFromAuthEvent } from "../repositories/mechanic.repository.js";
 
-const r = new Redis(config.REDIS_URL);
-
 export const redis = new Redis(config.REDIS_URL, {
   enableReadyCheck: false
 });
 
 export const initMechanicEventSubscriber = () => {
-  const channels = ["user_events", "mechanic_commands"];
+  const channels = ["user_events", "mechanic_events"];
 
   redis.subscribe(...channels, (err, count) => {
     if (err) {
@@ -46,11 +44,29 @@ const handleEvent = async (channel, type, payload) => {
     }
   }
 
-  if (channel === "mechanic_commands") {
-    console.log("mechanic-service: mechanic command received:", {
-      type,
-      payload,
-    });
-    // Future: FORCE_OFFLINE, BLOCK_MECHANIC, etc.
+  if (channel === "mechanic_events") {
+    switch (type) {
+      case "MECHANIC_ASSIGNED":
+        const { mechanicId, sosId } = payload;
+
+        await Mechanic.findByIdAndUpdate(
+          { authId: mechanicId },
+          {
+            currentSos: sosId,
+            availability: "busy"
+          }
+        );
+        break;
+      
+      case "MECHANIC_RELEASED":
+        await Mechanic.findOneAndUpdate(
+          { authId: payload.mechanicId },
+          {
+            availability: "available",
+            currentSosId: null,
+          }
+        );
+        break;
+    }
   }
 };

@@ -6,6 +6,7 @@ import {
   updateMyStatusController,
   updateMyLocationController,
   findNearbyMechanicsController,
+  blockMechanicController,
 } from "../controllers/mechanic.controller.js";
 import { verifyToken } from "../../shared/middlewares/verifyToken.js";
 import { roleGuard } from "../../shared/middlewares/roleGuard.js";
@@ -23,5 +24,10 @@ router.put("/me/location", verifyToken, roleGuard(ROLES.MECHANIC), updateMyLocat
 
 // For users/admin to search nearby mechanics
 router.get("/nearby", verifyToken, findNearbyMechanicsController);
+
+router.patch(
+  "/admin/block",
+  blockMechanicController
+);
 
 export default router;

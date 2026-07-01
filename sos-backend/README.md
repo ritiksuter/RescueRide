@@ -65,7 +65,7 @@ SOS Vehicle Backend is a comprehensive microservices platform built with Node.js
 
 - Central entry point for all client requests
 - Request routing and proxying
-- Rate limiting and authentication middleware
+- Rate limiting and authentication middleware 
 
 ### 2. **Auth Service** (Port 8001)
 
@@ -98,14 +98,28 @@ SOS Vehicle Backend is a comprehensive microservices platform built with Node.js
 - Route history management
 - Geolocation-based services
 
-### 7. **Admin Service** (Port 8006)
+### 7. **PDF Ingestion Service** (Port 8010)
+
+- Document upload and PDF processing
+- Text extraction, chunking, and embeddings
+- Pinecone-ready knowledge base ingestion
+- Redis queue-backed worker pipeline
+
+### 8. **AI Chat Service** (Configurable port via `.env`)
+
+- Retrieval-augmented generation (RAG) chat interface
+- Pinecone-based knowledge retrieval
+- OpenAI conversation generation
+- JWT-protected chat endpoints and history storage
+
+### 9. **Admin Service** (Port 8006)
 
 - Administrative operations
 - User and mechanic moderation
 - Statistics and analytics
 - System health monitoring
 
-### 8. **Notification Service** (Port 9007)
+### 10. **Notification Service** (Port 9007)
 
 - WebSocket server for real-time notifications
 - Event-based alerts
@@ -162,7 +176,6 @@ SOS Vehicle Backend is a comprehensive microservices platform built with Node.js
    ```
 
    This will:
-
    - Start MongoDB container
    - Start Redis container
    - Build and start all microservices
@@ -251,6 +264,8 @@ sos-backend/
 │   │   └── utils/             # Utility functions
 │   └── tests/                 # Test suite
 ├── auth-service/              # Authentication & Authorization
+├── ai-chat-service/           # AI-powered conversational RAG service
+├── pdf-ingestion-service/     # PDF upload, extraction, chunking, and embedding
 ├── user-service/              # User Management
 ├── mechanic-service/          # Mechanic Management
 ├── sos-service/               # Emergency Services
@@ -266,6 +281,7 @@ sos-backend/
 ├── docker/                   # Docker configurations
 │   └── docker-compose.yml   # Multi-container orchestration
 ├── scripts/                  # Startup/shutdown scripts
+├── tests/                    # Root-level tests and integration examples
 └── README.md                # This file
 ```
 
@@ -291,8 +307,19 @@ curl http://localhost:8004/health
 # Tracking Service
 curl http://localhost:8005/health
 
+# PDF Ingestion Service
+curl http://localhost:8010/health
+
+# AI Chat Service
+curl http://localhost:8010/health
+
+> Note: `pdf-ingestion-service` and `ai-chat-service` both default to port `8010`. Set unique `PORT` values in the respective `.env` files when running both services locally.
+
 # Admin Service
 curl http://localhost:8006/health
+
+# Notification Service
+curl http://localhost:9007/health
 
 # API Gateway
 curl http://localhost:8000
@@ -312,6 +339,10 @@ Example service endpoints:
 - `POST /api/mechanics/register` - Register mechanic
 - `GET /api/tracking/:id` - Get tracking info
 - `GET /api/admin/statistics` - Get statistics
+- `POST /api/ai/chat/ask` - Ask the AI chat service a question
+- `GET /api/ai/chat/history/:sessionId` - Retrieve chat history for a session
+- `POST /api/documents/upload` - Upload a PDF document for ingestion
+- `GET /api/documents/:documentId` - View uploaded document metadata and status
 
 For detailed API documentation, refer to individual service documentation or Postman collections.
 

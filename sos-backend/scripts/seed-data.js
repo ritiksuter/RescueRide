@@ -1,89 +1,201 @@
 /**
- * Simple seed script for local dev.
- * Run from repo root:
- *   node scripts/seed-data.js
+ * Seed Script for Local Development
+ *
+ * Run from project root:
+ * node scripts/seed-data.js
  */
 
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-
-dotenv.config({ path: "./auth-service/.env" }); // load at least MONGO_URI for auth
-
-const authMongoUri = process.env.MONGO_URI || "mongodb://localhost:27017/sos-auth";
-
-// ---- Auth User model (inline) ----
-const userAuthSchema = new mongoose.Schema(
-  {
-    name: String,
-    email: { type: String, unique: true },
-    phone: String,
-    passwordHash: String,
-    role: { type: String, enum: ["user", "mechanic", "admin"], default: "user" },
-    isActive: { type: Boolean, default: true },
-  },
-  { timestamps: true }
-);
-
-const UserAuth = mongoose.model("UserAuth", userAuthSchema);
-
-// very simple bcrypt helper
 import bcrypt from "bcryptjs";
 
-const hashPassword = async (plain) => {
-  const salt = await bcrypt.genSalt(10);
-  return bcrypt.hash(plain, salt);
-};
+dotenv.config({
+  path: "./auth-service/.env"
+});
+
+/**
+ * Mongo URI
+ */
+const authMongoUri =
+  process.env.MONGO_URI ||
+  "mongodb://localhost:27017/sos-auth";
+
+/**
+ * Auth User Schema
+ */
+const userAuthSchema =
+  new mongoose.Schema(
+    {
+      name: String,
+
+      email: {
+        type: String,
+        unique: true,
+      },
+
+      phone: String,
+
+      passwordHash: String,
+
+      role: {
+        type: String,
+        enum: [
+          "user",
+          "mechanic",
+          "admin",
+        ],
+        default: "user",
+      },
+
+      isActive: {
+        type: Boolean,
+        default: true,
+      },
+    },
+    {
+      timestamps: true,
+    }
+  );
+
+const UserAuth =
+  mongoose.models.UserAuth ||
+  mongoose.model(
+    "UserAuth",
+    userAuthSchema
+  );
+
+/**
+ * Hash Password Helper
+ */
+const hashPassword =
+  async (plainPassword) => {
+    const salt =
+      await bcrypt.genSalt(10);
+
+    return bcrypt.hash(
+      plainPassword,
+      salt
+    );
+  };
 
 async function main() {
-  console.log("🔗 Connecting to Mongo (auth)...", authMongoUri);
-  await mongoose.connect(authMongoUri);
+  try {
+    console.log(
+      "🔗 Connecting to MongoDB..."
+    );
 
-  console.log("🧹 Clearing existing seed users (only if needed)...");
-  // Comment next line if you don't want to clear:
-  // await UserAuth.deleteMany({});
+    await mongoose.connect(
+      authMongoUri
+    );
 
-  const password = await hashPassword("password123");
+    console.log(
+      "✅ MongoDB Connected"
+    );
 
-  const seedUsers = [
-    {
-      name: "Test User",
-      email: "user@example.com",
-      phone: "9999999999",
-      role: "user",
-      passwordHash: password,
-    },
-    {
-      name: "Test Mechanic",
-      email: "mechanic@example.com",
-      phone: "8888888888",
-      role: "mechanic",
-      passwordHash: password,
-    },
-    {
-      name: "Admin",
-      email: "admin@example.com",
-      phone: "7777777777",
-      role: "admin",
-      passwordHash: password,
-    },
-  ];
+    const defaultPassword =
+      await hashPassword(
+        "password123"
+      );
 
-  for (const u of seedUsers) {
-    const existing = await UserAuth.findOne({ email: u.email });
-    if (existing) {
-      console.log(`ℹ️ User already exists: ${u.email}`);
-      continue;
+    /**
+     * Seed Users
+     */
+    const seedUsers = [
+      {
+        name: "Test User",
+        email:
+          "user@example.com",
+        phone:
+          "9999999999",
+        role: "user",
+        passwordHash:
+          defaultPassword,
+      },
+
+      {
+        name:
+          "Test Mechanic",
+        email:
+          "mechanic@example.com",
+        phone:
+          "8888888888",
+        role: "mechanic",
+        passwordHash:
+          defaultPassword,
+      },
+
+      {
+        name:
+          "System Admin",
+        email:
+          "admin@example.com",
+        phone:
+          "7777777777",
+        role: "admin",
+        passwordHash:
+          defaultPassword,
+      },
+
+      /**
+       * AI Admin
+       * specifically for
+       * PDF uploads
+       */
+      {
+        name:
+          "Knowledge Admin",
+        email:
+          "aiadmin@example.com",
+        phone:
+          "6666666666",
+        role: "admin",
+        passwordHash:
+          defaultPassword,
+      },
+    ];
+
+    for (const user of seedUsers) {
+      const existing =
+        await UserAuth.findOne({
+          email: user.email,
+        });
+
+      if (existing) {
+        console.log(
+          `ℹ️ Already exists: ${user.email}`
+        );
+        continue;
+      }
+
+      const created =
+        await UserAuth.create(
+          user
+        );
+
+      console.log(
+        `✅ Created: ${created.email} (role=${created.role})`
+      );
     }
-    const created = await UserAuth.create(u);
-    console.log(`✅ Created user: ${created.email} (role=${created.role})`);
-  }
 
-  console.log("✅ Seeding done.");
-  await mongoose.disconnect();
-  process.exit(0);
+    console.log("");
+    console.log(
+      "🚀 Local development seed completed successfully"
+    );
+    console.log("");
+    console.log(
+      "Default Password: password123"
+    );
+
+    await mongoose.disconnect();
+    process.exit(0);
+  } catch (error) {
+    console.error(
+      "❌ Seed Script Failed:",
+      error.message
+    );
+
+    process.exit(1);
+  }
 }
 
-main().catch((err) => {
-  console.error("❌ Seed script error:", err);
-  process.exit(1);
-});
+main();

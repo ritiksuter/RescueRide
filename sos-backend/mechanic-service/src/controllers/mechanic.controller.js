@@ -1,4 +1,5 @@
 import { success, failure } from "../utils/response.js";
+
 import {
   getMyMechanicProfile,
   updateMyMechanicProfile,
@@ -8,6 +9,7 @@ import {
 } from "../services/mechanic.service.js";
 import { findNearbyMechanics } from "../services/location.service.js";
 import { MECHANIC_STATUS } from "../../shared/constants/status.js";
+import { MechanicStatus } from "../models/MechanicStatus.model.js";
 
 export const getMyProfileController = async (req, res) => {
   try {
@@ -58,7 +60,7 @@ export const updateMyStatusController = async (req, res) => {
 export const updateMyLocationController = async (req, res) => {
   try {
     const authUserId = req.user.id;
-    const { lat, lng } = req.body;
+    const { lat, lng } = req.body.location;
 
     if (lat == null || lng == null) {
       return failure(res, "lat and lng are required", 400);
@@ -91,4 +93,61 @@ export const findNearbyMechanicsController = async (req, res) => {
   } catch (err) {
     return failure(res, err.message, err.status || 500);
   }
+};
+
+
+export const blockMechanicController = async (req, res) => {
+  try {
+    const { mechanicAuthId } = req.body;
+
+    const status = await MechanicStatus.findOneAndUpdate(
+      {
+        mechanicAuthUserId: mechanicAuthId,
+      },
+      {
+        status: MECHANIC_STATUS.OFFLINE,
+        lastUpdatedAt: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!status) {
+      return res.status(404).json({
+        success: false,
+        message: "Mechanic status not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Mechanic blocked successfully",
+      status,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export const unblockMechanicController = async (req, res) => {
+  const { mechanicAuthId } = req.body;
+
+  const status = await MechanicStatus.findOneAndUpdate(
+    {
+      mechanicAuthUserId: mechanicAuthId,
+    },
+    {
+      status: MECHANIC_STATUS.AVAILABLE,
+      lastUpdatedAt: new Date(),
+    },
+    { new: true }
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Mechanic unblocked successfully",
+    status,
+  });
 };

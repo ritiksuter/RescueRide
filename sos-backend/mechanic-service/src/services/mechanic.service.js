@@ -7,7 +7,7 @@ import {
   getStatusByAuthUserId,
   upsertStatus,
 } from "../repositories/status.repository.js";
-import { publishMechanicProfileUpdated, publishMechanicStatusUpdated } from "../events/publisher.js";
+import { publishMechanicLocationUpdated, publishMechanicProfileUpdated, publishMechanicStatusUpdated } from "../events/publisher.js";
 import { MECHANIC_STATUS } from "../../shared/constants/status.js";
 
 export const getMyMechanicProfile = async (authUserId) => {
@@ -55,7 +55,6 @@ export const updateMyStatus = async (authUserId, statusValue) => {
   await publishMechanicStatusUpdated({
     mechanicAuthUserId: authUserId,
     status: status.status,
-    location: status.location,
     lastUpdatedAt: status.lastUpdatedAt,
   });
 
@@ -68,9 +67,8 @@ export const updateMyLocation = async (authUserId, { lat, lng }) => {
     status: MECHANIC_STATUS.AVAILABLE, // usually location update means online
   });
 
-  await publishMechanicStatusUpdated({
+  await publishMechanicLocationUpdated({
     mechanicAuthUserId: authUserId,
-    status: status.status,
     location: status.location,
     lastUpdatedAt: status.lastUpdatedAt,
   });

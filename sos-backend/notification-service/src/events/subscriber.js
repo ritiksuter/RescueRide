@@ -49,6 +49,7 @@ const handleEvent = (io, channel, event) => {
 
           // Notify admins
           io.to("admins").emit("sos:new", payload);
+          console.log("SOS event created.....");
           break;
         }
 
@@ -75,21 +76,25 @@ const handleEvent = (io, channel, event) => {
     // =======================
     case "mechanic_events": {
       switch (type) {
-        case "MECHANIC_ASSIGNED": {
-          const { sosId, mechanicId, userId } = payload;
+        case EVENTS.MECHANIC_PROFILE_UPDATED: {
+          const { mechanicAuthUserId } = payload;
 
-          if (mechanicId) {
-            io.to(`mechanic:${mechanicId}`).emit(
-              "mechanic:assigned-to-sos",
-              payload
-            );
-          }
-          if (userId) {
-            io.to(`user:${userId}`).emit("sos:mechanic-assigned", payload);
-          }
-          if (sosId) {
-            io.to(`sos:${sosId}`).emit("sos:mechanic-assigned", payload);
-          }
+          io.to(`mechanic:${mechanicAuthUserId}`).emit(
+            "mechanic:profile-updated",
+            payload
+          );
+
+          break;
+        }
+
+        case EVENTS.MECHANIC_STATUS_UPDATED: {
+          const { mechanicAuthUserId } = payload;
+
+          io.to(`mechanic:${mechanicAuthUserId}`).emit(
+            "mechanic:status-updated",
+            payload
+          );
+
           break;
         }
 

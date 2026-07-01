@@ -6,10 +6,11 @@ import { recordAdminAction } from "./admin.service.js";
 export const blockUser = async ({ adminAuthId, userAuthId, reason }) => {
   // Example: call auth-service or user-service to deactivate user
   try {
-    // await axios.post(`${config.AUTH_SERVICE_URL}/auth/admin/block-user`, {
-    //   userAuthId,
-    //   reason,
-    // });
+    console.log(`${config.AUTH_SERVICE_URL}/auth/admin/block-user`);
+    await axios.patch(`${config.AUTH_SERVICE_URL}/auth/admin/block-user`, {
+      userAuthId,
+      reason,
+    });
   } catch (err) {
     console.error("Failed to call user block endpoint:", err.message);
   }
@@ -26,10 +27,24 @@ export const blockUser = async ({ adminAuthId, userAuthId, reason }) => {
 
 export const blockMechanic = async ({ adminAuthId, mechanicAuthId, reason }) => {
   try {
-    // await axios.post(`${config.MECHANIC_SERVICE_URL}/mechanic/admin/block`, {
-    //   mechanicAuthId,
-    //   reason,
-    // });
+      await axios.patch(
+      `${config.AUTH_SERVICE_URL}/auth/admin/block-user`,
+      {
+        userAuthId: mechanicAuthId,
+        reason,
+      }
+    );
+
+    await axios.patch(`${config.MECHANIC_SERVICE_URL}/mechanic/admin/block`, {
+      mechanicAuthId,
+      reason,
+    },
+    {
+    headers: {
+      authorization: req.headers.authorization,
+    },
+  }
+  );
   } catch (err) {
     console.error("Failed to call mechanic block endpoint:", err.message);
   }
@@ -44,12 +59,18 @@ export const blockMechanic = async ({ adminAuthId, mechanicAuthId, reason }) => 
   });
 };
 
-export const forceCancelSos = async ({ adminAuthId, sosId, reason }) => {
+export const forceCancelSos = async ({ adminAuthId, sosId, reason, token }) => {
   try {
-    // await axios.post(`${config.SOS_SERVICE_URL}/sos/${sosId}/job-cancel`, {
-    //   byAdmin: true,
-    //   reason,
-    // });
+    await axios.patch(`${config.SOS_SERVICE_URL}/sos/${sosId}/job-cancel`, {
+      byAdmin: true,
+      reason,
+    },
+    {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  }
+  );
   } catch (err) {
     console.error("Failed to call SOS cancel endpoint:", err.message);
   }

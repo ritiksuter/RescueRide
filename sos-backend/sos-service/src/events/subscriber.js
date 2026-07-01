@@ -3,8 +3,7 @@ import { config } from "../config/env.js";
 import { EVENTS } from "../../shared/constants/events.js";
 import { updateSosStatus } from "../repositories/sos.repository.js";
 import { SOS_STATUS } from "../../shared/constants/status.js";
-
-const r = new Redis(config.REDIS_URL);
+import { publishMechanicReleased, publishSosStatusUpdated } from "../events/publisher.js";
 
 export const redis = new Redis(config.REDIS_URL, {
   enableReadyCheck: false
@@ -37,13 +36,24 @@ const handleEvent = async (channel, type, payload) => {
   if (channel === "tracking_events") {
     switch (type) {
       case EVENTS.TRIP_COMPLETED: {
-        const { sosId } = payload;
-        if (!sosId) return;
-        await updateSosStatus(sosId, SOS_STATUS.COMPLETED);
+        const updated = await updateSosStatus(
+        sosId,
+        SOS_STATUS.COMPLETED
+        );
+
+      await publishSosStatusUpdated({
+        sosId: updated._id.toString(),
+        status: updated.status,
+      });
+
+      if (updated.mechanicAuthId) {
+        await publishMechanicReleased({
+          mechanicId: updated.mechanicAuthId,
+          sosId: updated._id.toString(),
+        });
+      }
         break;
       }
-      default:
-        break;
     }
   }
 

@@ -20,7 +20,7 @@ export const createProfileFromAuthEvent = async ({
 };
 
 export const findByAuthUserId = async (authUserId) => {
-  return MechanicProfile.findOne({ authUserId });
+  return MechanicProfile.find({ authUserId });
 };
 
 export const updateProfile = async (authUserId, updateData) => {

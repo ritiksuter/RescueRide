@@ -11,4 +11,4 @@ ENV NODE_ENV=production
 
 EXPOSE 8001
 
-CMD ["node", "src/app.js"]
+CMD ["node", "start"]

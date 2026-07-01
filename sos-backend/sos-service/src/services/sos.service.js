@@ -90,6 +90,12 @@ export const cancelSosByUser = async (sosId, userAuthId) => {
     cancelledBy: updated.cancelledBy,
   });
 
+  if (updated.mechanicAuthId) {
+    await publishMechanicReleased({
+      mechanicId: updated.mechanicAuthId,
+      sosId: updated._id.toString(),
+    });
+  }
   return updated;
 };
 

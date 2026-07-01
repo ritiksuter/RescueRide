@@ -1,14 +1,40 @@
 # API Gateway
 
-The API Gateway acts as a single entry point for all client requests to the SOS Vehicle application. It routes requests to the appropriate services and handles cross-cutting concerns such as authentication and logging.
+The API Gateway acts as the single entry point for all client requests in the SOS Vehicle Backend platform.
 
-## Structure
+It is responsible for:
 
-- **src/**: Contains the main application code.
-- **middlewares/**: Middleware functions for request processing.
-- **proxy/**: Logic for proxying requests to backend services.
-- **routes/**: API routes for the gateway functionalities.
+- Request routing
+- Reverse proxying
+- Authentication middleware
+- Authorization checks
+- Rate limiting
+- Logging
+- Request validation
+- Service orchestration
+- Secure communication with internal microservices
 
-## Docker
+All frontend requests must go through the API Gateway.
 
-This service can be containerized using the provided Dockerfile.
+No frontend should directly access internal services.
+
+---
+
+# Architecture
+
+```text
+Client / Frontend
+        ↓
+API Gateway (Port 8000)
+        ↓
+------------------------------------------------
+| Auth Service              (8001)             |
+| User Service              (8002)             |
+| Mechanic Service          (8003)             |
+| SOS Service               (8004)             |
+| Tracking Service          (8005)             |
+| Admin Service             (8006)             |
+| Notification Service      (9007)             |
+| AI Chat Service           (8010)             |
+| PDF Ingestion Service     (8011)             |
+------------------------------------------------

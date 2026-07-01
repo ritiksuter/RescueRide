@@ -3,6 +3,7 @@ import { rotateRefreshToken } from "../services/token.service.js";
 import { success, failure } from "../utils/response.js";
 import jwt from "jsonwebtoken";
 import { config } from "../config/env.js";
+import { UserAuth } from "../models/UserAuth.model.js";
 
 export const registerController = async (req, res) => {
   try {
@@ -87,8 +88,60 @@ export const meController = async (req, res) => {
   }
 };
 
+export const blockUserController = async (req, res) => {
+  const { userAuthId, reason } = req.body;
+
+  const user = await UserAuth.findByIdAndUpdate(
+    userAuthId,
+    {
+      isActive: false,
+    },
+    { new: true }
+  );
+
+  console.log(user);
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "User blocked successfully",
+    user,
+  });
+};
+
+export const unblockUserController = async (req, res) => {
+  const { userAuthId } = req.body;
+
+  const user = await UserAuth.findByIdAndUpdate(
+    userAuthId,
+    {
+      isActive: true,
+    },
+    { new: true }
+  );
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "User unblocked successfully",
+    user,
+  });
+};
+
 // Simple verify middleware (local to auth-service)
-export const authMiddleware = (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   try {
     const header = req.headers["authorization"];
     if (!header) {
@@ -101,9 +154,21 @@ export const authMiddleware = (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, config.JWT_ACCESS_SECRET);
+
+    const user = await UserAuth.findById(decoded.id);
+
+    if (!user) {
+      return failure(res, "User not found", 404);
+    }
+
+    if (!user.isActive) {
+      return failure(res, "Account has been blocked", 403);
+    }
+
     req.user = decoded;
     next();
-  } catch (err) {
+  } 
+  catch (err) {
     return failure(res, "Invalid or expired token", 401);
   }
 };

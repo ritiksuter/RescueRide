@@ -5,6 +5,7 @@ import {
 
 export const getUserProfile = async (authUserId) => {
   const profile = await findByAuthUserId(authUserId);
+  console.log(profile);
 
   if (!profile) {
     const error = new Error("User profile not found");

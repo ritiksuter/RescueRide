@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+
   mongo:
     image: mongo:6
     container_name: sos-mongo
@@ -38,6 +39,8 @@ services:
       - tracking-service
       - notification-service
       - admin-service
+      - ai-chat-service
+      - pdf-ingestion-service
     networks:
       - sos-net
 
@@ -51,10 +54,10 @@ services:
     depends_on:
       - mongo
       - redis
-    networks:
-      - sos-net
     ports:
       - "8001:8001"
+    networks:
+      - sos-net
 
   user-service:
     build:
@@ -66,10 +69,10 @@ services:
     depends_on:
       - mongo
       - redis
-    networks:
-      - sos-net
     ports:
       - "8002:8002"
+    networks:
+      - sos-net
 
   mechanic-service:
     build:
@@ -81,10 +84,10 @@ services:
     depends_on:
       - mongo
       - redis
-    networks:
-      - sos-net
     ports:
       - "8003:8003"
+    networks:
+      - sos-net
 
   sos-service:
     build:
@@ -97,10 +100,10 @@ services:
       - mongo
       - redis
       - mechanic-service
-    networks:
-      - sos-net
     ports:
       - "8004:8004"
+    networks:
+      - sos-net
 
   tracking-service:
     build:
@@ -112,24 +115,10 @@ services:
     depends_on:
       - mongo
       - redis
-    networks:
-      - sos-net
     ports:
       - "8005:8005"
-
-  notification-service:
-    build:
-      context: ..
-      dockerfile: docker/notification.Dockerfile
-    container_name: notification-service
-    env_file:
-      - ../notification-service/.env
-    depends_on:
-      - redis
     networks:
       - sos-net
-    ports:
-      - "9007:9007"
 
   admin-service:
     build:
@@ -141,10 +130,55 @@ services:
     depends_on:
       - mongo
       - redis
-    networks:
-      - sos-net
     ports:
       - "8006:8006"
+    networks:
+      - sos-net
+
+  notification-service:
+    build:
+      context: ..
+      dockerfile: docker/notification.Dockerfile
+    container_name: notification-service
+    env_file:
+      - ../notification-service/.env
+    depends_on:
+      - redis
+    ports:
+      - "9007:9007"
+    networks:
+      - sos-net
+
+    ai-chat-service:
+      build:
+        context: ..
+        dockerfile: docker/ai-chat.Dockerfile
+      container_name: ai-chat-service
+      env_file:
+        - ../ai-chat-service/.env
+      depends_on:
+        - mongo
+        - redis
+        - pdf-ingestion-service
+      ports:
+        - "8010:8010"
+      networks:
+        - sos-net
+
+  pdf-ingestion-service:
+    build:
+      context: ..
+      dockerfile: docker/pdf-ingestion.Dockerfile
+    container_name: pdf-ingestion-service
+    env_file:
+      - ../pdf-ingestion-service/.env
+    depends_on:
+      - mongo
+      - redis
+    ports:
+      - "8011:8011"
+    networks:
+      - sos-net
 
 networks:
   sos-net:

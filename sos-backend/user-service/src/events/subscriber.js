@@ -2,10 +2,8 @@ import Redis from "ioredis";
 import { config } from "../config/env.js";
 import { createProfileFromAuthEvent } from "../repositories/user.repository.js";
 
-const r = new Redis(config.REDIS_URL);
-
 export const redis = new Redis(config.REDIS_URL, {
-  enableReadyCheck: false
+  enableReadyCheck: false,
 });
 
 export const initUserEventSubscriber = () => {

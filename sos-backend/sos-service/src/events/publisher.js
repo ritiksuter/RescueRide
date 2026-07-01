@@ -20,3 +20,7 @@ export const publishSosStatusUpdated = async (payload) => {
 export const publishMechanicAssigned = async (payload) => {
   await publishEvent("mechanic_events", EVENTS.MECHANIC_ASSIGNED, payload);
 };
+
+export const publishMechanicReleased = async (payload) => {
+  await publishEvent("mechanic_events", EVENTS.MECHANIC_RELEASED, payload);
+};

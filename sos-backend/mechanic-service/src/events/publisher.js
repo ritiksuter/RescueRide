@@ -10,13 +10,21 @@ const publishEvent = async (channel, type, payload) => {
 };
 
 export const publishMechanicProfileUpdated = async (payload) => {
-  await publishEvent("mechanic_events", "MECHANIC_PROFILE_UPDATED", payload);
+  await publishEvent("mechanic_events", EVENTS.MECHANIC_PROFILE_UPDATED, payload);
+};
+
+export const publishMechanicLocationUpdated = async (payload) => {
+  await publishEvent(
+    "mechanic_events",
+    EVENTS.MECHANIC_LOCATION_UPDATED,
+    payload
+  ) 
 };
 
 export const publishMechanicStatusUpdated = async (payload) => {
   await publishEvent(
     "mechanic_events",
-    EVENTS.MECHANIC_LOCATION_UPDATED || "MECHANIC_STATUS_UPDATED",
+    EVENTS.MECHANIC_STATUS_UPDATED,
     payload
   );
 };

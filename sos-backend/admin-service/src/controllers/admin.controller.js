@@ -45,6 +45,8 @@ export const blockUserController = async (req, res) => {
       return failure(res, "userAuthId is required", 400);
     }
 
+    console.log("Hello");
+
     const action = await blockUser({ adminAuthId, userAuthId, reason });
 
     return success(res, "User block command recorded", action);
@@ -79,10 +81,13 @@ export const forceCancelSosController = async (req, res) => {
       return failure(res, "sosId is required", 400);
     }
 
-    const action = await forceCancelSos({ adminAuthId, sosId, reason });
+    const token = req.headers.authorization?.split(" ")[1];
+
+    const action = await forceCancelSos({ adminAuthId, sosId, reason, token });
 
     return success(res, "SOS force-cancel command recorded", action);
   } catch (err) {
     return failure(res, err.message, err.status || 500);
   }
 };
+

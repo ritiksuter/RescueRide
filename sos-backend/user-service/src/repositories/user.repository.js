@@ -20,7 +20,8 @@ export const createProfileFromAuthEvent = async ({
 };
 
 export const findByAuthUserId = async (authUserId) => {
-  return UserProfile.findOne({ authUserId });
+  const profile = UserProfile.find({ authUserId });
+  return profile;
 };
 
 export const updateProfile = async (authUserId, updateData) => {

@@ -6,8 +6,6 @@ import {
   completeTrackingSessionBySosId,
 } from "../services/tracking.service.js";
 
-const r = new Redis(config.REDIS_URL);
-
 export const redis = new Redis(config.REDIS_URL, {
   enableReadyCheck: false
 });
