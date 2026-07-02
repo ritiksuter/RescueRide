@@ -1,6 +1,9 @@
 import { getPineconeIndex } from "../config/pinecone.js";
 import logger from "../utils/logger.js";
 
+const BATCH_SIZE =
+  Number(process.env.PINECONE_BATCH_SIZE) || 10;
+
 /**
  * Store embedded chunks in Pinecone
  */
@@ -16,42 +19,56 @@ const storeVectorsInPinecone = async ({
     }
 
     if (!embeddedChunks.length) {
-      throw new Error(
-        "No embedded chunks provided"
-      );
+      throw new Error("No embedded chunks provided");
     }
 
-    const pineconeIndex = getPineconeIndex();
-
-    // One namespace per document
     const namespace = `doc-${documentId}`;
 
-    const vectors = embeddedChunks.map(
-      (chunk) => ({
-        id: `${documentId}-chunk-${chunk.chunkIndex}`,
+    const pineconeNamespace =
+      getPineconeIndex().namespace(namespace);
 
-        // Embedding vector
-        values: chunk.embedding,
+    const vectors = embeddedChunks.map((chunk) => ({
+      id: `${documentId}-chunk-${chunk.chunkIndex}`,
+      values: chunk.embedding,
+      metadata: {
+        documentId: String(documentId),
+        fileName: fileName || "",
+        uploadedBy: String(uploadedBy || ""),
+        chunkIndex: chunk.chunkIndex,
 
-        // Metadata used during retrieval
-        metadata: {
-          documentId: String(documentId),
-          fileName: fileName || "",
-          uploadedBy: String(uploadedBy || ""),
-          chunkIndex: chunk.chunkIndex,
-
-          // Pinecone metadata size limits
-          text: chunk.content.slice(0, 4000),
-        },
-      })
-    );
-
-    await pineconeIndex
-      .namespace(namespace)
-      .upsert(vectors);
+        // Chunk size is already ~800 chars, no need to slice to 4000
+        text: chunk.content,
+      },
+    }));
 
     logger.info(
-      `Stored ${vectors.length} vectors in namespace: ${namespace}`
+      `Uploading ${vectors.length} vectors to Pinecone...`
+    );
+
+    for (
+      let i = 0;
+      i < vectors.length;
+      i += BATCH_SIZE
+    ) {
+      const batch = vectors.slice(
+        i,
+        i + BATCH_SIZE
+      );
+
+      const payloadSize = Buffer.byteLength(
+        JSON.stringify(batch),
+        "utf8"
+      );
+
+      logger.info(
+        `Batch ${i / BATCH_SIZE + 1} | ${batch.length} vectors | ${(payloadSize / 1024).toFixed(2)} KB`
+      );
+
+      await pineconeNamespace.upsert(batch);
+    }
+
+    logger.info(
+      `Successfully stored ${vectors.length} vectors in namespace: ${namespace}`
     );
 
     return {
@@ -60,7 +77,8 @@ const storeVectorsInPinecone = async ({
     };
   } catch (error) {
     logger.error(
-      `Pinecone Storage Failed: ${error.message}`
+      `Pinecone Storage Failed: ${error.message}`,
+      error
     );
 
     throw error;

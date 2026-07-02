@@ -1,4 +1,6 @@
 import ai from "../config/gemini.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 class GeminiService {
   async generateAnswer(prompt) {
